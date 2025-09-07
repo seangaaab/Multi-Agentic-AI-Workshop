@@ -34,31 +34,18 @@ tests-and-evals
 
 1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
 2. Sign in with your Google account
-3. Click **"Create API key"** 
-4. Choose **"Create API key in new project"** (recommended for new users)
+3. Click **"Create API key"** <img width="1482" height="790" alt="image" src="https://github.com/user-attachments/assets/a9de98dc-f7b3-4307-bb51-16dfe5125c44" />
+4. Choose **"Create API key in new project"** <img width="1151" height="740" alt="image" src="https://github.com/user-attachments/assets/3039b1ba-1e0a-4939-8897-c9dd76eb7822" />
 5. Copy the generated API key (starts with `AI...`)
 
 ⚠️ **Keep this key secure!** Don't commit it to version control or share it publicly.
 
 ### Step 2: Set Environment Variable
 
-**For this dev container (Linux):**
+**Create a .env file with content:**
 ```bash
-# Add to ~/.bashrc or ~/.zshrc
-export GEMINI_API_KEY=YOUR_API_KEY_HERE
-source ~/.bashrc  # or source ~/.zshrc
+GEMINI_API_KEY=YOUR_API_KEY_HERE
 ```
-
-### Step 3: Verify Setup
-
-Test your key works:
-```bash
-curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$GEMINI_API_KEY" \
-  -H 'Content-Type: application/json' \
-  -d '{"contents":[{"parts":[{"text":"Hello"}]}]}'
-```
-
-You should see a JSON response with generated text.
 
 ### Security Best Practices
 
@@ -71,34 +58,30 @@ For more details, see the [official Gemini API documentation](https://ai.google.
 
 ---
 
-# 00-boot — Project scaffolding & smoke test
+# 00-boot — Project scaffolding & smoke test 
+
+(If you feel lost go to the finished section of this at `git checkout 00-boot` and run `uv sync --all-groups --all-extras`)
 
 **Goal:** Create a clean Python 3.12 project, install PydanticAI (with MCP), and run a minimal agent.
 
 ### Commands
 
 ```bash
-git init pydanticai-mcp-workshop && cd pydanticai-mcp-workshop
-git checkout -b 00-boot
-
 # Create and activate a virtualenv with uv
 uv sync
 source .venv/bin/activate
 
-# Initialize a project and add deps
-uv init --package
-uv add "pydantic-ai-slim[mcp]" "httpx>=0.27" "pydantic>=2.7" tenacity
-uv add "google-generativeai>=0.8.0"
-
-# Optional: tests
-uv add -d pytest
+# Add deps
+uv add "pydantic-ai-slim[mcp]" "httpx>=0.28.1" "pydantic>=2.11.7" tenacity
+uv add "google-generativeai>=0.8.5" "pydantic-ai-slim[google]"
+uv add --dev pytest "python-dotenv==1.1.1"
 ```
 
 ### `pyproject.toml` (ensure these exist)
 
 ```toml
 [project]
-name = "pydanticai-mcp-workshop"
+name = "multi-agentic-ai-workshop"
 version = "0.1.0"
 requires-python = ">=3.12"
 ```
@@ -120,25 +103,16 @@ if __name__ == "__main__":
 ### Run
 
 ```bash
-export GEMINI_API_KEY=AI...   # or your provider's env var
 uv run src/boot_smoke.py
-```
-
-Commit:
-
-```bash
-git add -A && git commit -m "00-boot"
 ```
 
 ---
 
 # 01-agent-basics — Minimal agent (sync/async) + streaming
 
-**Goal:** Use `run_sync`, `run`, and stream final text with `run_stream`.
+(If you feel lost go to the finished section of this at `git checkout 01-agent-basics` and run `uv sync --all-groups --all-extras`)
 
-```bash
-git checkout -b 01-agent-basics
-```
+**Goal:** Use `run_sync`, `run`, and stream final text with `run_stream`.
 
 ### `src/agent_basics.py`
 
@@ -186,11 +160,9 @@ git add -A && git commit -m "01-agent-basics"
 
 # 02-typed-output — Pydantic models & unions
 
-**Goal:** Enforce structure using `output_type` with Pydantic models. Use a union for graceful fallback.
+(If you feel lost go to the finished section of this at `git checkout 02-typed-output` and run `uv sync --all-groups --all-extras`)
 
-```bash
-git checkout -b 02-typed-output
-```
+**Goal:** Enforce structure using `output_type` with Pydantic models. Use a union for graceful fallback.
 
 ### `src/typed_output.py`
 
@@ -239,11 +211,9 @@ git add -A && git commit -m "02-typed-output"
 
 # 03-tools-fundamentals — `@agent.tool` and `RunContext`
 
-**Goal:** Add function tools the model can call. Access conversation context via `RunContext`.
+(If you feel lost go to the finished section of this at `git checkout 03-tools-fundamentals` and run `uv sync --all-groups --all-extras`)
 
-```bash
-git checkout -b 03-tools-fundamentals
-```
+**Goal:** Add function tools the model can call. Access conversation context via `RunContext`.
 
 ### `src/tools_fundamentals.py`
 
@@ -289,11 +259,9 @@ git add -A && git commit -m "03-tools-fundamentals"
 
 # 04-mcp-stdio — Use a local MCP server as a toolset (subprocess)
 
-**Goal:** Launch an MCP server as a subprocess and expose its tools to your agent.
+(If you feel lost go to the finished section of this at `git checkout 04-mcp-stdio` and run `uv sync --all-groups --all-extras`)
 
-```bash
-git checkout -b 04-mcp-stdio
-```
+**Goal:** Launch an MCP server as a subprocess and expose its tools to your agent.
 
 Install a sample MCP server (on demand):
 
@@ -341,10 +309,11 @@ git add -A && git commit -m "04-mcp-stdio"
 
 # 05-mcp-http — Connect to an MCP server over Streamable HTTP
 
+(If you feel lost go to the finished section of this at `git checkout 05-mcp-http` and run `uv sync --all-groups --all-extras`)
+
 **Goal:** Stand up a tiny MCP server and connect via HTTP.
 
 ```bash
-git checkout -b 05-mcp-http
 uv add fastmcp
 ```
 
@@ -401,11 +370,9 @@ git add -A && git commit -m "05-mcp-http"
 
 # 06-usage-limits-retries — Guardrails and resilient calls
 
-**Goal:** Bound work with `UsageLimits`, and show retry/backoff using Tenacity in a tool (no external network required).
+(If you feel lost go to the finished section of this at `git checkout 06-usage-limits-retries` and run `uv sync --all-groups --all-extras`)
 
-```bash
-git checkout -b 06-usage-limits-retries
-```
+**Goal:** Bound work with `UsageLimits`, and show retry/backoff using Tenacity in a tool (no external network required).
 
 ### `src/limits_retries.py`
 
@@ -453,11 +420,9 @@ git add -A && git commit -m "06-usage-limits-retries"
 
 # 08-pattern-router — Router/Delegator with typed outcomes
 
-**Goal:** Route to specialist agents using output functions, with a typed failure fallback.
+(If you feel lost go to the finished section of this at `git checkout 08-pattern-router` and run `uv sync --all-groups --all-extras`)
 
-```bash
-git checkout -b 08-pattern-router
-```
+**Goal:** Route to specialist agents using output functions, with a typed failure fallback.
 
 ### `src/pattern_router.py`
 
@@ -520,11 +485,9 @@ git add -A && git commit -m "08-pattern-router"
 
 # 11-pattern-pipeline — Deterministic stages & idempotent steps
 
-**Goal:** Chain multiple agents programmatically for a predictable, testable flow.
+(If you feel lost go to the finished section of this at `git checkout 11-pattern-pipeline` and run `uv sync --all-groups --all-extras`)
 
-```bash
-git checkout -b 11-pattern-pipeline
-```
+**Goal:** Chain multiple agents programmatically for a predictable, testable flow.
 
 ### `src/pattern_pipeline.py`
 
@@ -585,11 +548,9 @@ git add -A && git commit -m "11-pattern-pipeline"
 
 # 13-pattern-critic-editor — Two-role refinement loop
 
-**Goal:** Improve draft quality with a bounded Editor↔Critic loop.
+(If you feel lost go to the finished section of this at `git checkout 13-pattern-critic-editor` and run `uv sync --all-groups --all-extras`)
 
-```bash
-git checkout -b 13-pattern-critic-editor
-```
+**Goal:** Improve draft quality with a bounded Editor↔Critic loop.
 
 ### `src/pattern_critic_editor.py`
 
@@ -638,10 +599,11 @@ git add -A && git commit -m "13-pattern-critic-editor"
 
 # Tests & evals — Fast, no-network CI
 
+(If you feel lost go to the finished section of this at `git checkout tests-and-evals` and run `uv sync --all-groups --all-extras`)
+
 **Goal:** Prevent accidental live calls and test patterns by overriding models.
 
 ```bash
-git checkout -b tests-and-evals
 mkdir -p tests
 ```
 
