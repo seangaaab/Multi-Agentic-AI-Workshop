@@ -484,6 +484,7 @@ def flaky_fetch(ctx: RunContext, q: str) -> str:
         # Simulate transient failure
         sleep(0.05)
         raise RuntimeError("Transient network error")
+
     return f"data-for:{q}"
 
 def main() -> None:
