@@ -22,7 +22,52 @@ This is the workshop handout. Each section includes a short goal, commands, and 
 tests-and-evals
 ```
 
-> Models in the examples use `openai:gpt-4o-mini`. Swap to any provider/model your team uses by changing the model string and setting the corresponding API key.
+> Models in the examples use `gemini-2.5-flash`. Swap to any provider/model your team uses by changing the model string and setting the corresponding API key.
+
+---
+
+# Getting Your Gemini API Key
+
+**Goal:** Set up a free Gemini API key to power your AI agents.
+
+### Step 1: Create Your API Key
+
+1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Sign in with your Google account
+3. Click **"Create API key"** 
+4. Choose **"Create API key in new project"** (recommended for new users)
+5. Copy the generated API key (starts with `AI...`)
+
+⚠️ **Keep this key secure!** Don't commit it to version control or share it publicly.
+
+### Step 2: Set Environment Variable
+
+**For this dev container (Linux):**
+```bash
+# Add to ~/.bashrc or ~/.zshrc
+export GEMINI_API_KEY=YOUR_API_KEY_HERE
+source ~/.bashrc  # or source ~/.zshrc
+```
+
+### Step 3: Verify Setup
+
+Test your key works:
+```bash
+curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$GEMINI_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"contents":[{"parts":[{"text":"Hello"}]}]}'
+```
+
+You should see a JSON response with generated text.
+
+### Security Best Practices
+
+- **Never commit API keys** to Git repositories
+- **Use server-side calls** for production applications  
+- **Consider API key restrictions** in Google Cloud Console to limit usage
+- **Rotate keys periodically** if they might be compromised
+
+For more details, see the [official Gemini API documentation](https://ai.google.dev/gemini-api/docs/api-key).
 
 ---
 
@@ -37,13 +82,13 @@ git init pydanticai-mcp-workshop && cd pydanticai-mcp-workshop
 git checkout -b 00-boot
 
 # Create and activate a virtualenv with uv
-uv venv
+uv sync
 source .venv/bin/activate
 
 # Initialize a project and add deps
 uv init --package
 uv add "pydantic-ai-slim[mcp]" "httpx>=0.27" "pydantic>=2.7" tenacity
-uv add "openai>=1.50"    # choose your LLM provider(s)
+uv add "google-generativeai>=0.8.0"
 
 # Optional: tests
 uv add -d pytest
@@ -64,7 +109,7 @@ requires-python = ">=3.12"
 from pydantic_ai import Agent
 
 def main() -> None:
-    agent = Agent("openai:gpt-4o-mini", instructions="Be concise.")
+    agent = Agent("gemini-2.5-flash", instructions="Be concise.")
     res = agent.run_sync("Say 'hello workshop' exactly.")
     print(res.output)
 
@@ -75,7 +120,7 @@ if __name__ == "__main__":
 ### Run
 
 ```bash
-export OPENAI_API_KEY=sk-...   # or your provider’s env var
+export GEMINI_API_KEY=AI...   # or your provider's env var
 uv run src/boot_smoke.py
 ```
 
@@ -101,7 +146,7 @@ git checkout -b 01-agent-basics
 import asyncio
 from pydantic_ai import Agent
 
-agent = Agent("openai:gpt-4o-mini", instructions="Answer briefly.")
+agent = Agent("gemini-2.5-flash", instructions="Answer briefly.")
 
 def run_sync_demo() -> None:
     res = agent.run_sync("Name three prime numbers.")
@@ -165,7 +210,7 @@ class Fallback(BaseModel):
 Typed = Answer | Fallback
 
 agent = Agent[None, Typed](
-    "openai:gpt-4o-mini",
+    "gemini-2.5-flash",
     output_type=Answer | Fallback,  # type: ignore[valid-type]
     instructions="Return a factual Answer model; if unsure, return Fallback."
 )
@@ -206,7 +251,7 @@ git checkout -b 03-tools-fundamentals
 from datetime import datetime
 from pydantic_ai import Agent, RunContext
 
-agent = Agent("openai:gpt-4o-mini", instructions="""
+agent = Agent("gemini-2.5-flash", instructions="""
 You can call `now()` for the current ISO timestamp.
 Call it before answering time-sensitive questions.
 """)
@@ -266,7 +311,7 @@ from pydantic_ai.mcp import MCPServerStdio
 runpy = MCPServerStdio("uv", args=["run", "mcp-run-python", "stdio"], timeout=10)
 
 agent = Agent(
-    "openai:gpt-4o",
+    "gemini-2.5-flash",
     toolsets=[runpy],
     instructions="Use tools when code execution or math helps."
 )
@@ -326,7 +371,7 @@ from pydantic_ai import Agent
 from pydantic_ai.mcp import MCPServerStreamableHTTP
 
 server = MCPServerStreamableHTTP("http://localhost:8000/mcp")
-agent = Agent("openai:gpt-4o-mini", toolsets=[server])
+agent = Agent("gemini-2.5-flash", toolsets=[server])
 
 async def main() -> None:
     async with agent:
@@ -370,7 +415,7 @@ from time import sleep
 from tenacity import retry, wait_exponential, stop_after_attempt
 from pydantic_ai import Agent, UsageLimits, RunContext
 
-agent = Agent("openai:gpt-4o-mini", instructions="Be brief; avoid verbosity.")
+agent = Agent("gemini-2.5-flash", instructions="Be brief; avoid verbosity.")
 
 # Simulate a flaky HTTP call via a tool; Tenacity handles retries/backoff
 @agent.tool
@@ -421,8 +466,8 @@ from pydantic import BaseModel
 from pydantic_ai import Agent, RunContext
 
 # Specialist agents
-math_agent = Agent("openai:gpt-4o-mini", instructions="Compute or reason step-by-step; output the final number.")
-qa_agent   = Agent("openai:gpt-4o-mini", instructions="Answer factual questions concisely.")
+math_agent = Agent("gemini-2.5-flash", instructions="Compute or reason step-by-step; output the final number.")
+qa_agent   = Agent("gemini-2.5-flash", instructions="Answer factual questions concisely.")
 
 # Router output choices (functions are selectable outputs)
 async def hand_off_to_math(ctx: RunContext, query: str) -> str:
@@ -441,7 +486,7 @@ class RouterFailure(BaseModel):
 RouterOut = str | RouterFailure
 
 router = Agent[None, RouterOut](
-    "openai:gpt-4o",
+    "gemini-2.5-flash",
     output_type=[hand_off_to_math, hand_off_to_qa, RouterFailure],
     instructions=(
         "If the query is numeric/math/code-like, use hand_off_to_math. "
@@ -493,7 +538,7 @@ class Requirements(BaseModel):
     length_words: int = Field(ge=50, le=800)
 
 extractor = Agent[None, Requirements](
-    "openai:gpt-4o-mini",
+    "gemini-2.5-flash",
     output_type=Requirements,
     instructions="Extract topic, audience, and a reasonable length (50-800)."
 )
@@ -502,12 +547,12 @@ class Outline(BaseModel):
     headings: list[str]
 
 outliner = Agent[None, Outline](
-    "openai:gpt-4o-mini",
+    "gemini-2.5-flash",
     output_type=Outline,
     instructions="Produce 3-6 descriptive headings."
 )
 
-drafter = Agent("openai:gpt-4o", instructions="Write a crisp draft under the provided headings.")
+drafter = Agent("gemini-2.5-flash", instructions="Write a crisp draft under the provided headings.")
 
 def pipeline_run(user_brief: str) -> str:
     req = extractor.run_sync(user_brief).output
@@ -556,9 +601,9 @@ class Review(BaseModel):
     score: int = Field(ge=1, le=10)
     suggestions: list[str]
 
-editor = Agent("openai:gpt-4o-mini", instructions="Draft clearly. Avoid fluff.")
+editor = Agent("gemini-2.5-flash", instructions="Draft clearly. Avoid fluff.")
 critic = Agent[None, Review](
-    "openai:gpt-4o-mini",
+    "gemini-2.5-flash",
     output_type=Review,
     instructions="Score 1-10; include concrete revision suggestions."
 )
@@ -652,7 +697,7 @@ git add -A && git commit -m "tests-and-evals"
 
 ## Troubleshooting & tips
 
-* **Model strings:** Replace `"openai:gpt-4o-mini"` with your provider/model (e.g., `"anthropic:claude-3-5-sonnet-latest"`, `"google-gla:gemini-1.5-flash"`) and set the correct API key environment variable.
+* **Model strings:** Replace `"gemini-2.5-flash"` with your provider/model (e.g., `"openai:gpt-4o-mini"`, `"anthropic:claude-3-5-sonnet-latest"`) and set the correct API key environment variable.
 * **Streaming:** `run_stream` yields final text chunks. If you need full event-by-event control, use the async `.run()` API and inspect messages/events.
 * **Unions:** When using unions or output functions, parameterize `Agent[DepsT, OutputT]` and use `# type: ignore[valid-type]` if your type checker complains on `output_type=`.
 * **MCP:** Use stdio for local subprocess servers; use Streamable HTTP for network servers. Add `tool_prefix` if multiple MCP servers expose identically named tools.
