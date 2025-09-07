@@ -255,8 +255,11 @@ uv run src/typed_output.py
 ### `src/tools_fundamentals.py`
 
 ```python
-from datetime import datetime
+from dotenv import load_dotenv
+from datetime import datetime, UTC
 from pydantic_ai import Agent, RunContext
+
+load_dotenv()
 
 agent = Agent("gemini-2.5-flash", instructions="""
 You can call `now()` for the current ISO timestamp.
@@ -264,13 +267,19 @@ Call it before answering time-sensitive questions.
 """)
 
 @agent.tool
-def now() -> str:
-    return datetime.utcnow().isoformat() + "Z"
+def now(ctx: RunContext) -> str:
+    """
+    Returns the current ISO timestamp.
+    """
+    return datetime.now(UTC).isoformat()
 
 @agent.tool
 def echo_with_ctx(ctx: RunContext, msg: str) -> str:
-    user_text = ctx.messages[-1].content_text or ""
-    return f"echo={msg} (user_prompt_len={len(user_text)})"
+    """
+    Returns the echo of the message.
+    """
+    message_count = len(ctx.messages) if hasattr(ctx, 'messages') else 0
+    return f"echo={msg} (message_count={message_count})"
 
 def main() -> None:
     print(agent.run_sync("What's the time? Use tools.").output)
