@@ -5,7 +5,6 @@
 This is the workshop handout. Each section includes a short goal, commands, and **copy-pasteable code** with file paths. If someone falls behind, you can checkpoint the repo by committing at the end of each section.
 
 ---
-
 ## Repo layout & branches you’ll create
 
 ```
@@ -72,7 +71,7 @@ uv sync
 source .venv/bin/activate
 
 # Add deps
-uv add "pydantic-ai-slim[mcp]" "httpx>=0.28.1" "pydantic>=2.11.7" tenacity nest-asyncio
+uv add "pydantic-ai-slim[mcp]" "httpx>=0.28.1" "pydantic>=2.11.7" tenacity nest-asyncio fastmcp
 uv add "google-generativeai>=0.8.5" "pydantic-ai-slim[google]"
 uv add --dev pytest "python-dotenv==1.1.1" ruff
 ```
@@ -302,12 +301,42 @@ uv run src/tools_fundamentals.py
 
 (If you feel lost go to the finished section of this at `git checkout 04-mcp-stdio` and run `uv sync --all-groups --all-extras`)
 
-**Goal:** Launch an MCP server as a subprocess and expose its tools to your agent.
+**Goal:** Create a pure-Python MCP server with useful tools and connect via stdio transport.
 
-Install a sample MCP server (on demand):
+Install FastMCP:
 
 ```bash
-uvx mcp-run-python --help   # optional: sanity check
+uv add fastmcp
+```
+
+### `src/servers/calc_server.py`
+
+```python
+from fastmcp import FastMCP
+from datetime import datetime
+
+mcp = FastMCP("Calculator")
+
+@mcp.tool()
+def add(a: int, b: int) -> int:
+    """Add two numbers."""
+    return a + b
+
+@mcp.tool()
+def multiply(a: int, b: int) -> int:
+    """Multiply two numbers.""" 
+    return a * b
+
+@mcp.tool()
+def days_between(start_date: str, end_date: str) -> int:
+    """Calculate days between two dates (YYYY-MM-DD format)."""
+    from datetime import datetime
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    end = datetime.strptime(end_date, "%Y-%m-%d")
+    return (end - start).days
+
+if __name__ == "__main__":
+    mcp.run(transport="stdio")
 ```
 
 ### `src/mcp_stdio_client.py`
@@ -317,18 +346,21 @@ import asyncio
 from pydantic_ai import Agent
 from pydantic_ai.mcp import MCPServerStdio
 
-runpy = MCPServerStdio("uv", args=["run", "mcp-run-python", "stdio"], timeout=10)
+calc_server = MCPServerStdio("uv", args=["run", "src/servers/calc_server.py"], timeout=10)
 
 agent = Agent(
     "gemini-2.5-flash",
-    toolsets=[runpy],
-    instructions="Use tools when code execution or math helps."
+    toolsets=[calc_server],
+    instructions="Use tools when math calculations or date operations help."
 )
 
 async def main() -> None:
     async with agent:
         res = await agent.run("How many days between 2000-01-01 and 2025-03-18?")
         print(res.output)
+        
+        res2 = await agent.run("What is 17 times 23?")
+        print(res2.output)
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -347,25 +379,48 @@ uv run src/mcp_stdio_client.py
 
 (If you feel lost go to the finished section of this at `git checkout 05-mcp-http` and run `uv sync --all-groups --all-extras`)
 
-**Goal:** Stand up a tiny MCP server and connect via HTTP.
+**Goal:** Run the same server over HTTP instead of stdio for network access.
 
-```bash
-uv add fastmcp
-```
-
-### `src/servers/add_server.py`
+### `src/servers/calc_http_server.py`
 
 ```python
 from fastmcp import FastMCP
+from datetime import datetime
 
-app = FastMCP("Adder")
+mcp = FastMCP("Calculator-HTTP")
 
-@app.tool()
+@mcp.tool()
 def add(a: int, b: int) -> int:
+    """Add two numbers."""
     return a + b
 
+@mcp.tool()
+def multiply(a: int, b: int) -> int:
+    """Multiply two numbers.""" 
+    return a * b
+
+@mcp.tool()
+def days_between(start_date: str, end_date: str) -> int:
+    """Calculate days between two dates (YYYY-MM-DD format)."""
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    end = datetime.strptime(end_date, "%Y-%m-%d")
+    return (end - start).days
+
+@mcp.tool()
+def factorial(n: int) -> int:
+    """Calculate factorial of a number."""
+    if n < 0:
+        return 0
+    elif n == 0 or n == 1:
+        return 1
+    else:
+        result = 1
+        for i in range(2, n + 1):
+            result *= i
+        return result
+
 if __name__ == "__main__":
-    app.run(transport="streamable-http")  # http://localhost:8000/mcp
+    mcp.run(transport="streamable-http")  # http://localhost:8000/mcp
 ```
 
 ### `src/mcp_http_client.py`
@@ -382,6 +437,9 @@ async def main() -> None:
     async with agent:
         res = await agent.run("What is 7 plus 5? Use the tool.")
         print(res.output)
+        
+        res2 = await agent.run("Calculate the factorial of 6.")
+        print(res2.output)
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -391,7 +449,7 @@ Run:
 
 ```bash
 # terminal 1
-uv run src/servers/add_server.py
+uv run src/servers/calc_http_server.py
 # terminal 2
 uv run src/mcp_http_client.py
 ```
@@ -668,7 +726,7 @@ uv run -m pytest -q
 * **Model strings:** Replace `"gemini-2.5-flash"` with your provider/model (e.g., `"openai:gpt-4o-mini"`, `"anthropic:claude-3-5-sonnet-latest"`) and set the correct API key environment variable.
 * **Streaming:** `run_stream` yields final text chunks. If you need full event-by-event control, use the async `.run()` API and inspect messages/events.
 * **Unions:** When using unions or output functions, parameterize `Agent[DepsT, OutputT]` and use `# type: ignore[valid-type]` if your type checker complains on `output_type=`.
-* **MCP:** Use stdio for local subprocess servers; use Streamable HTTP for network servers. Add `tool_prefix` if multiple MCP servers expose identically named tools.
+* **MCP:** FastMCP provides pure-Python MCP servers. Use stdio for local subprocess servers; use Streamable HTTP for network servers. Add `tool_prefix` if multiple MCP servers expose identically named tools.
 * **Guardrails:** `UsageLimits` prevents runaway loops and caps tokens/tool calls. For resiliency, add Tenacity retries to your own tools or HTTP calls.
 * **Repro:** Commit your `uv.lock` to pin dependency versions for the workshop.
 
