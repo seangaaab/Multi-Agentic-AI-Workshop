@@ -189,32 +189,49 @@ uv run src/agent_basics.py
 
 **Goal:** Enforce structure using `output_type` with Pydantic models. Use a union for graceful fallback.
 
-### `src/typed_output.py`
+### `src/models/typed_output.py`
 
 ```python
 from typing import Literal
 from pydantic import BaseModel
-from pydantic_ai import Agent
+
 
 class Answer(BaseModel):
     kind: Literal["fact"]
     text: str
 
+
 class Fallback(BaseModel):
     kind: Literal["fallback"]
     message: str
 
+
 Typed = Answer | Fallback
+```
+
+### `src/typed_output.py`
+
+```python
+from dotenv import load_dotenv
+from pydantic_ai import Agent
+from models.answer_schema import Typed, Answer, Fallback
+
+load_dotenv()
 
 agent = Agent[None, Typed](
     "gemini-2.5-flash",
     output_type=Answer | Fallback,  # type: ignore[valid-type]
-    instructions="Return a factual Answer model; if unsure, return Fallback."
+    instructions="Return a factual Answer model; if unsure, return Fallback.",
 )
 
+
 def main() -> None:
-    print(agent.run_sync("What is the capital of France?").output)
-    print(agent.run_sync("Gibberish 123??").output)
+    result1 = agent.run_sync("What is the capital of France?").output
+    print(result1.model_dump_json(indent=2))
+    
+    result2 = agent.run_sync("Gibberish 123??").output
+    print(result2.model_dump_json(indent=2))
+
 
 if __name__ == "__main__":
     main()
