@@ -72,9 +72,9 @@ uv sync
 source .venv/bin/activate
 
 # Add deps
-uv add "pydantic-ai-slim[mcp]" "httpx>=0.28.1" "pydantic>=2.11.7" tenacity
+uv add "pydantic-ai-slim[mcp]" "httpx>=0.28.1" "pydantic>=2.11.7" tenacity nest-asyncio
 uv add "google-generativeai>=0.8.5" "pydantic-ai-slim[google]"
-uv add --dev pytest "python-dotenv==1.1.1"
+uv add --dev pytest "python-dotenv==1.1.1" ruff
 ```
 
 ### `pyproject.toml` (ensure these exist)
@@ -90,6 +90,9 @@ requires-python = ">=3.12"
 
 ```python
 from pydantic_ai import Agent
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def main() -> None:
     agent = Agent("gemini-2.5-flash", instructions="Be concise.")
@@ -118,30 +121,57 @@ uv run src/boot_smoke.py
 
 ```python
 import asyncio
+import nest_asyncio
 from pydantic_ai import Agent
+from dotenv import load_dotenv
+import sys
+
+# Apply nest_asyncio to allow nested event loops
+nest_asyncio.apply()
+
+load_dotenv()
 
 agent = Agent("gemini-2.5-flash", instructions="Answer briefly.")
+
 
 def run_sync_demo() -> None:
     res = agent.run_sync("Name three prime numbers.")
     print("SYNC:", res.output)
 
+
 async def run_async_demo() -> None:
     res = await agent.run("One sentence on Fibonacci numbers.")
     print("ASYNC:", res.output)
 
+
 async def run_stream_demo() -> None:
-    async with agent.run_stream("Stream a short paragraph on solar eclipses.") as stream:
+    async with agent.run_stream(
+        "Stream a short paragraph on solar eclipses."
+    ) as stream:
         async for text_chunk in stream.stream_text():
             print(text_chunk, end="", flush=True)
+
         print("\n---")
         final = await stream.get_output()
         print("FINAL:", final)
 
+
+async def run_all_async_demos() -> None:
+    """Run all async demos in a single event loop"""
+    await run_async_demo()
+    await run_stream_demo()
+
+
 if __name__ == "__main__":
+    # Set event loop policy for better compatibility
+    if sys.platform.startswith("win"):
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
     run_sync_demo()
-    asyncio.run(run_async_demo())
-    asyncio.run(run_stream_demo())
+
+    # Run all async demos in a single event loop to avoid conflicts
+    asyncio.run(run_all_async_demos())
+
 ```
 
 Run:
@@ -150,11 +180,6 @@ Run:
 uv run src/agent_basics.py
 ```
 
-Commit:
-
-```bash
-git add -A && git commit -m "01-agent-basics"
-```
 
 ---
 
@@ -201,11 +226,6 @@ Run:
 uv run src/typed_output.py
 ```
 
-Commit:
-
-```bash
-git add -A && git commit -m "02-typed-output"
-```
 
 ---
 
@@ -249,11 +269,6 @@ Run:
 uv run src/tools_fundamentals.py
 ```
 
-Commit:
-
-```bash
-git add -A && git commit -m "03-tools-fundamentals"
-```
 
 ---
 
@@ -299,11 +314,6 @@ Run:
 uv run src/mcp_stdio_client.py
 ```
 
-Commit:
-
-```bash
-git add -A && git commit -m "04-mcp-stdio"
-```
 
 ---
 
@@ -360,11 +370,6 @@ uv run src/servers/add_server.py
 uv run src/mcp_http_client.py
 ```
 
-Commit:
-
-```bash
-git add -A && git commit -m "05-mcp-http"
-```
 
 ---
 
@@ -410,11 +415,6 @@ Run:
 uv run src/limits_retries.py
 ```
 
-Commit:
-
-```bash
-git add -A && git commit -m "06-usage-limits-retries"
-```
 
 ---
 
@@ -475,11 +475,6 @@ Run:
 uv run src/pattern_router.py
 ```
 
-Commit:
-
-```bash
-git add -A && git commit -m "08-pattern-router"
-```
 
 ---
 
@@ -538,11 +533,6 @@ Run:
 uv run src/pattern_pipeline.py
 ```
 
-Commit:
-
-```bash
-git add -A && git commit -m "11-pattern-pipeline"
-```
 
 ---
 
@@ -589,11 +579,6 @@ Run:
 uv run src/pattern_critic_editor.py
 ```
 
-Commit:
-
-```bash
-git add -A && git commit -m "13-pattern-critic-editor"
-```
 
 ---
 
@@ -649,11 +634,6 @@ Run:
 uv run -m pytest -q
 ```
 
-Commit:
-
-```bash
-git add -A && git commit -m "tests-and-evals"
-```
 
 ---
 
