@@ -188,7 +188,7 @@ uv run src/agent_basics.py
 
 **Goal:** Enforce structure using `output_type` with Pydantic models. Use a union for graceful fallback.
 
-### `src/models/typed_output.py`
+### `src/models/answer_schema.py`
 
 ```python
 from typing import Literal
