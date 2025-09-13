@@ -343,10 +343,13 @@ if __name__ == "__main__":
 
 ```python
 import asyncio
+from dotenv import load_dotenv
+load_dotenv()
+
 from pydantic_ai import Agent
 from pydantic_ai.mcp import MCPServerStdio
 
-calc_server = MCPServerStdio("uv", args=["run", "src/servers/calc_server.py"], timeout=10)
+calc_server = MCPServerStdio("uv", args=["run", "src/servers/calc_server.py"], timeout=30)
 
 agent = Agent(
     "gemini-2.5-flash",
