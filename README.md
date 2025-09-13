@@ -432,6 +432,8 @@ if __name__ == "__main__":
 import asyncio
 from pydantic_ai import Agent
 from pydantic_ai.mcp import MCPServerStreamableHTTP
+from dotenv import load_dotenv
+load_dotenv()
 
 server = MCPServerStreamableHTTP("http://localhost:8000/mcp")
 agent = Agent("gemini-2.5-flash", toolsets=[server])
@@ -485,6 +487,7 @@ def flaky_fetch(ctx: RunContext, q: str) -> str:
         # Simulate transient failure
         sleep(0.05)
         raise RuntimeError("Transient network error")
+
     return f"data-for:{q}"
 
 def main() -> None:
@@ -505,9 +508,9 @@ uv run src/limits_retries.py
 
 ---
 
-# 08-pattern-router — Router/Delegator with typed outcomes
+# 07-pattern-router — Router/Delegator with typed outcomes
 
-(If you feel lost go to the finished section of this at `git checkout 08-pattern-router` and run `uv sync --all-groups --all-extras`)
+(If you feel lost go to the finished section of this at `git checkout 07-pattern-router` and run `uv sync --all-groups --all-extras`)
 
 **Goal:** Route to specialist agents using output functions, with a typed failure fallback.
 
@@ -565,9 +568,9 @@ uv run src/pattern_router.py
 
 ---
 
-# 11-pattern-pipeline — Deterministic stages & idempotent steps
+# 08-pattern-pipeline — Deterministic stages & idempotent steps
 
-(If you feel lost go to the finished section of this at `git checkout 11-pattern-pipeline` and run `uv sync --all-groups --all-extras`)
+(If you feel lost go to the finished section of this at `git checkout 08-pattern-pipeline` and run `uv sync --all-groups --all-extras`)
 
 **Goal:** Chain multiple agents programmatically for a predictable, testable flow.
 
@@ -576,28 +579,38 @@ uv run src/pattern_router.py
 ```python
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class Requirements(BaseModel):
     topic: str
     audience: str
     length_words: int = Field(ge=50, le=800)
 
+
 extractor = Agent[None, Requirements](
     "gemini-2.5-flash",
     output_type=Requirements,
-    instructions="Extract topic, audience, and a reasonable length (50-800)."
+    instructions="Extract topic, audience, and a reasonable length (50-800).",
 )
+
 
 class Outline(BaseModel):
     headings: list[str]
 
+
 outliner = Agent[None, Outline](
     "gemini-2.5-flash",
     output_type=Outline,
-    instructions="Produce 3-6 descriptive headings."
+    instructions="Produce 3-6 descriptive headings.",
 )
 
-drafter = Agent("gemini-2.5-flash", instructions="Write a crisp draft under the provided headings.")
+drafter = Agent(
+    "gemini-2.5-flash", instructions="Write a crisp draft under the provided headings."
+)
+
 
 def pipeline_run(user_brief: str) -> str:
     req = extractor.run_sync(user_brief).output
@@ -605,13 +618,20 @@ def pipeline_run(user_brief: str) -> str:
         f"Topic: {req.topic}\nAudience: {req.audience}\nLength: {req.length_words}"
     ).output
     draft = drafter.run_sync(
-        "Write with these headings:\n" + "\n".join(f"- {h}" for h in outline.headings) +
-        f"\nTarget length ~{req.length_words} words."
+        "Write with these headings:\n"
+        + "\n".join(f"- {h}" for h in outline.headings)
+        + f"\nTarget length ~{req.length_words} words."
     ).output
     return draft
 
+
 if __name__ == "__main__":
-    print(pipeline_run("I need a short blog about zero-copy networking for backend engineers."))
+    print(
+        pipeline_run(
+            "I need a short blog about zero-copy networking for backend engineers."
+        )
+    )
+
 ```
 
 Run:
@@ -623,9 +643,9 @@ uv run src/pattern_pipeline.py
 
 ---
 
-# 13-pattern-critic-editor — Two-role refinement loop
+# 09-pattern-critic-editor — Two-role refinement loop
 
-(If you feel lost go to the finished section of this at `git checkout 13-pattern-critic-editor` and run `uv sync --all-groups --all-extras`)
+(If you feel lost go to the finished section of this at `git checkout 09-pattern-critic-editor` and run `uv sync --all-groups --all-extras`)
 
 **Goal:** Improve draft quality with a bounded Editor↔Critic loop.
 
@@ -635,29 +655,48 @@ uv run src/pattern_pipeline.py
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 class Review(BaseModel):
     score: int = Field(ge=1, le=10)
     suggestions: list[str]
+
 
 editor = Agent("gemini-2.5-flash", instructions="Draft clearly. Avoid fluff.")
 critic = Agent[None, Review](
     "gemini-2.5-flash",
     output_type=Review,
-    instructions="Score 1-10; include concrete revision suggestions."
+    instructions="Score 1-10; include concrete revision suggestions.",
 )
 
+
 def improve(prompt: str, rounds: int = 2, target: int = 8) -> str:
+    """
+    Improve the draft by the critic's suggestions.
+    """
     draft = editor.run_sync(prompt).output
     for _ in range(rounds):
-        review = critic.run_sync(f"Rate this draft and suggest edits:\n\n{draft}").output
+        review = critic.run_sync(
+            f"Rate this draft and suggest edits:\n\n{draft}"
+        ).output
         if review.score >= target:
             break
-        revision_instructions = "Apply these improvements:\n- " + "\n- ".join(review.suggestions)
-        draft = editor.run_sync(f"{prompt}\n\n{revision_instructions}\n\nRevise:").output
+        revision_instructions = "Apply these improvements:\n- " + "\n- ".join(
+            review.suggestions
+        )
+        draft = editor.run_sync(
+            f"{prompt}\n\n{revision_instructions}\n\nRevise:"
+        ).output
+
     return draft
+
 
 if __name__ == "__main__":
     print(improve("Write a 120-word product blurb for a privacy-first notes app."))
+
 ```
 
 Run:
@@ -669,9 +708,9 @@ uv run src/pattern_critic_editor.py
 
 ---
 
-# Tests & evals — Fast, no-network CI
+# 10-tests-and-evals — Fast, no-network CI
 
-(If you feel lost go to the finished section of this at `git checkout tests-and-evals` and run `uv sync --all-groups --all-extras`)
+(If you feel lost go to the finished section of this at `git checkout 10-tests-and-evals` and run `uv sync --all-groups --all-extras`)
 
 **Goal:** Prevent accidental live calls and test patterns by overriding models.
 
