@@ -26,6 +26,30 @@ This is the workshop handout. Each section includes a short goal, commands, and 
 
 ---
 
+# Installing Pre-requisites
+
+### VSCode and Dev Containers
+
+- [macOS](https://code.visualstudio.com/docs/setup/mac)
+- [Linux](https://code.visualstudio.com/docs/setup/linux)
+- [Windows](https://code.visualstudio.com/docs/setup/windows)
+
+- Then install this VSCode extension: [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+### Docker Desktop
+
+- https://www.docker.com/products/docker-desktop/
+
+### WSL (For windows Users)
+
+- https://apps.microsoft.com/detail/9nz3klhxdjp5?hl=en-US&gl=US
+
+### Git
+
+- https://git-scm.com/downloads
+
+---
+
 # Getting Your Gemini API Key
 
 **Goal:** Set up a free Gemini API key to power your AI agents.
