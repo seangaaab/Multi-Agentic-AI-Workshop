@@ -22,26 +22,3 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     install -m 0755 "$(find /tmp/uv -type f -name uv -print -quit)" /usr/local/bin/uv; \
     rm -rf /tmp/uv /tmp/uv.tar.gz; \
     uv --version
-  
-# --- AWS CLI v2 (download with -k, verify with SHA) ---
-ARG TARGETARCH
-ARG AWSCLI_SHA256_AMD64
-ARG AWSCLI_SHA256_ARM64
-
-RUN set -euo pipefail; \
-  case "${TARGETARCH}" in \
-    amd64)  ARCH="x86_64"; SHA="${AWSCLI_SHA256_AMD64:-}";; \
-    arm64)  ARCH="aarch64"; SHA="${AWSCLI_SHA256_ARM64:-}";; \
-    *) echo "Unsupported arch: ${TARGETARCH}"; exit 1;; \
-  esac; \
-  URL="https://awscli.amazonaws.com/awscli-exe-linux-${ARCH}.zip"; \
-  echo "Fetching: ${URL}"; \
-  curl -fsSLk "${URL}" -o /tmp/awscliv2.zip; \
-  if [ -n "${SHA}" ]; then \
-    echo "${SHA}  /tmp/awscliv2.zip" | sha256sum -c -; \
-  else \
-    echo "WARNING: AWSCLI SHA not provided; skipping verification"; \
-  fi; \
-  unzip -q /tmp/awscliv2.zip -d /tmp && /tmp/aws/install --update; \
-  rm -rf /tmp/aws /tmp/awscliv2.zip; \
-  aws --version

@@ -5,6 +5,7 @@
 This is the workshop handout. Each section includes a short goal, commands, and **copy-pasteable code** with file paths. If someone falls behind, you can checkpoint the repo by committing at the end of each section.
 
 ---
+
 ## Repo layout & branches you’ll create
 
 ```
@@ -42,6 +43,7 @@ This is the workshop handout. Each section includes a short goal, commands, and 
 ### Step 2: Set Environment Variable
 
 **Create a .env file with content:**
+
 ```bash
 GEMINI_API_KEY=YOUR_API_KEY_HERE
 ```
@@ -49,7 +51,7 @@ GEMINI_API_KEY=YOUR_API_KEY_HERE
 ### Security Best Practices
 
 - **Never commit API keys** to Git repositories
-- **Use server-side calls** for production applications  
+- **Use server-side calls** for production applications
 - **Consider API key restrictions** in Google Cloud Console to limit usage
 - **Rotate keys periodically** if they might be compromised
 
@@ -57,7 +59,7 @@ For more details, see the [official Gemini API documentation](https://ai.google.
 
 ---
 
-# 00-boot — Project scaffolding & smoke test 
+# 00-boot — Project scaffolding & smoke test
 
 (If you feel lost go to the finished section of this at `git checkout 00-boot` and run `uv sync --all-groups --all-extras`)
 
@@ -179,7 +181,6 @@ Run:
 uv run src/agent_basics.py
 ```
 
-
 ---
 
 # 02-typed-output — Pydantic models & unions
@@ -227,7 +228,7 @@ agent = Agent[None, Typed](
 def main() -> None:
     result1 = agent.run_sync("What is the capital of France?").output
     print(result1.model_dump_json(indent=2))
-    
+
     result2 = agent.run_sync("Gibberish 123??").output
     print(result2.model_dump_json(indent=2))
 
@@ -241,7 +242,6 @@ Run:
 ```bash
 uv run src/typed_output.py
 ```
-
 
 ---
 
@@ -294,7 +294,6 @@ Run:
 uv run src/tools_fundamentals.py
 ```
 
-
 ---
 
 # 04-mcp-stdio — Use a local MCP server as a toolset (subprocess)
@@ -324,7 +323,7 @@ def add(a: int, b: int) -> int:
 
 @mcp.tool()
 def multiply(a: int, b: int) -> int:
-    """Multiply two numbers.""" 
+    """Multiply two numbers."""
     return a * b
 
 @mcp.tool()
@@ -361,7 +360,7 @@ async def main() -> None:
     async with agent:
         res = await agent.run("How many days between 2000-01-01 and 2025-03-18?")
         print(res.output)
-        
+
         res2 = await agent.run("What is 17 times 23?")
         print(res2.output)
 
@@ -374,7 +373,6 @@ Run:
 ```bash
 uv run src/mcp_stdio_client.py
 ```
-
 
 ---
 
@@ -399,7 +397,7 @@ def add(a: int, b: int) -> int:
 
 @mcp.tool()
 def multiply(a: int, b: int) -> int:
-    """Multiply two numbers.""" 
+    """Multiply two numbers."""
     return a * b
 
 @mcp.tool()
@@ -442,7 +440,7 @@ async def main() -> None:
     async with agent:
         res = await agent.run("What is 7 plus 5? Use the tool.")
         print(res.output)
-        
+
         res2 = await agent.run("Calculate the factorial of 6.")
         print(res2.output)
 
@@ -459,7 +457,6 @@ uv run src/servers/calc_http_server.py
 uv run src/mcp_http_client.py
 ```
 
-
 ---
 
 # 06-usage-limits-retries — Guardrails and resilient calls
@@ -475,6 +472,8 @@ import random
 from time import sleep
 from tenacity import retry, wait_exponential, stop_after_attempt
 from pydantic_ai import Agent, UsageLimits, RunContext
+from dotenv import load_dotenv
+load_dotenv()
 
 agent = Agent("gemini-2.5-flash", instructions="Be brief; avoid verbosity.")
 
@@ -505,7 +504,6 @@ Run:
 uv run src/limits_retries.py
 ```
 
-
 ---
 
 # 07-pattern-router — Router/Delegator with typed outcomes
@@ -519,6 +517,8 @@ uv run src/limits_retries.py
 ```python
 from pydantic import BaseModel
 from pydantic_ai import Agent, RunContext
+from dotenv import load_dotenv
+load_dotenv()
 
 # Specialist agents
 math_agent = Agent("gemini-2.5-flash", instructions="Compute or reason step-by-step; output the final number.")
@@ -564,7 +564,6 @@ Run:
 ```bash
 uv run src/pattern_router.py
 ```
-
 
 ---
 
@@ -640,7 +639,6 @@ Run:
 uv run src/pattern_pipeline.py
 ```
 
-
 ---
 
 # 09-pattern-critic-editor — Two-role refinement loop
@@ -705,7 +703,6 @@ Run:
 uv run src/pattern_critic_editor.py
 ```
 
-
 ---
 
 # 10-tests-and-evals — Fast, no-network CI
@@ -760,16 +757,15 @@ Run:
 uv run -m pytest -q
 ```
 
-
 ---
 
 ## Troubleshooting & tips
 
-* **Model strings:** Replace `"gemini-2.5-flash"` with your provider/model (e.g., `"openai:gpt-4o-mini"`, `"anthropic:claude-3-5-sonnet-latest"`) and set the correct API key environment variable.
-* **Streaming:** `run_stream` yields final text chunks. If you need full event-by-event control, use the async `.run()` API and inspect messages/events.
-* **Unions:** When using unions or output functions, parameterize `Agent[DepsT, OutputT]` and use `# type: ignore[valid-type]` if your type checker complains on `output_type=`.
-* **MCP:** FastMCP provides pure-Python MCP servers. Use stdio for local subprocess servers; use Streamable HTTP for network servers. Add `tool_prefix` if multiple MCP servers expose identically named tools.
-* **Guardrails:** `UsageLimits` prevents runaway loops and caps tokens/tool calls. For resiliency, add Tenacity retries to your own tools or HTTP calls.
-* **Repro:** Commit your `uv.lock` to pin dependency versions for the workshop.
+- **Model strings:** Replace `"gemini-2.5-flash"` with your provider/model (e.g., `"openai:gpt-4o-mini"`, `"anthropic:claude-3-5-sonnet-latest"`) and set the correct API key environment variable.
+- **Streaming:** `run_stream` yields final text chunks. If you need full event-by-event control, use the async `.run()` API and inspect messages/events.
+- **Unions:** When using unions or output functions, parameterize `Agent[DepsT, OutputT]` and use `# type: ignore[valid-type]` if your type checker complains on `output_type=`.
+- **MCP:** FastMCP provides pure-Python MCP servers. Use stdio for local subprocess servers; use Streamable HTTP for network servers. Add `tool_prefix` if multiple MCP servers expose identically named tools.
+- **Guardrails:** `UsageLimits` prevents runaway loops and caps tokens/tool calls. For resiliency, add Tenacity retries to your own tools or HTTP calls.
+- **Repro:** Commit your `uv.lock` to pin dependency versions for the workshop.
 
 You now have a compact, production-shaped toolkit: typed agents, practical MCP integrations, and three multi-agent patterns (Router, Pipeline, Critic–Editor) that scale from MVP to real-world workloads—without rewriting your stack.
