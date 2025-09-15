@@ -1,6 +1,8 @@
+![](images/highground.jpg)
+
 # The Startup’s Guide to PydanticAI + MCP
 
-### A hands-on workshop (cloud-agnostic, no vendor lock-in)
+### A hands-on workshop (cloud-agnosticy, no vendor lock-in)
 
 This is the workshop handout. Each section includes a short goal, commands, and **copy-pasteable code** with file paths. If someone falls behind, you can checkpoint the repo by committing at the end of each section.
 
@@ -57,9 +59,40 @@ For more details, see the [official Gemini API documentation](https://ai.google.
 
 ---
 
-# 00-boot — Project scaffolding & smoke test 
 
-(If you feel lost go to the finished section of this at `git checkout 00-boot` and run `uv sync --all-groups --all-extras`)
+
+# Starting the Workshop
+
+Clone the repo.
+
+Then rebuild and reopen in container:
+
+Do:
+```text
+ctrl + shift + p
+```
+<img src="images/devcontainer.png" alt="devcontainer" width="800"/>
+
+</br>
+
+Then see the finished container:
+
+<img src="images/devconfinished.png" alt="devcontainer" width="800"/>
+
+
+<br>
+
+After the container is built, open bash in VS Code and run:
+
+```bash
+git checkout 00-boot
+```
+
+This will be the starting point of our workshop
+
+---
+
+# 00-boot — Project scaffolding & smoke test 
 
 **Goal:** Create a clean Python 3.12 project, install PydanticAI (with MCP), and run a minimal agent.
 
@@ -639,7 +672,6 @@ Run:
 ```bash
 uv run src/pattern_pipeline.py
 ```
-
 
 ---
 
