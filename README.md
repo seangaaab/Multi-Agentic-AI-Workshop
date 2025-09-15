@@ -77,7 +77,7 @@ ctrl + shift + p
 
 Then see the finished container:
 
-<img src="images/devconfinished.png" alt="devcontainer" width="800"/>
+<img src="images/devconfinished.png" alt="devcontainer finished" width="800"/>
 
 
 <br>
@@ -88,7 +88,7 @@ After the container is built, open bash in VS Code and run:
 git checkout 00-boot
 ```
 
-This will be the starting point of our workshop
+This will be the starting point of our workshop.
 
 ---
 
@@ -139,6 +139,12 @@ if __name__ == "__main__":
 
 ```bash
 uv run src/boot_smoke.py
+```
+
+### Expected output
+
+```text
+hello workshop
 ```
 
 ---
@@ -212,6 +218,15 @@ Run:
 uv run src/agent_basics.py
 ```
 
+Expected output:
+
+```text
+SYNC: 2, 3, 5
+ASYNC: Fibonacci numbers form a sequence where each number is the sum of the two preceding ones, typically starting with 0 and 1 (e.g., 0, 1, 1, 2, 3, 5, 8, ...).
+A solar eclipse occurs when the Moon passes directly between the Sun and Earth, casting a shadow on our planet and temporarily blocking the Sun's light. This celestial alignment, though rare for any specific location, transforms day into a twilight, revealingA solar eclipse occurs when the Moon passes directly between the Sun and Earth, casting a shadow on our planet and temporarily blocking the Sun's light. This celestial alignment, though rare for any specific location, transforms day into a twilight, revealing the Sun's corona and creating a breathtaking, albeit brief, spectacle. Remember to always use certified eclipse glasses or safe viewing methods to protect your eyes.
+---
+FINAL: A solar eclipse occurs when the Moon passes directly between the Sun and Earth, casting a shadow on our planet and temporarily blocking the Sun's light. This celestial alignment, though rare for any specific location, transforms day into a twilight, revealing the Sun's corona and creating a breathtaking, albeit brief, spectacle. Remember to always use certified eclipse glasses or safe viewing methods to protect your eyes.
+```
 
 ---
 
@@ -275,6 +290,18 @@ Run:
 uv run src/typed_output.py
 ```
 
+Expected output:
+
+```text
+{
+  "kind": "fact",
+  "text": "Paris"
+}
+{
+  "kind": "fallback",
+  "message": "I'm sorry, I don't understand your request."
+}
+```
 
 ---
 
@@ -327,7 +354,12 @@ Run:
 uv run src/tools_fundamentals.py
 ```
 
+Expected output:
 
+```text
+The current time is 2025-09-15T17:42:02.187346+00:00. (Note: timestamp will vary)
+echo=hi (message_count=2)
+```
 ---
 
 # 04-mcp-stdio — Use a local MCP server as a toolset (subprocess)
@@ -408,6 +440,11 @@ Run:
 uv run src/mcp_stdio_client.py
 ```
 
+Expected output:
+
+<img src="images/mcp_stdio_ss.png" alt="mcp studio screenshot" width="800"/>
+
+</br>
 
 ---
 
