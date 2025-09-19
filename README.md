@@ -1,5 +1,3 @@
-![](images/highground.jpg)
-
 # The Startup’s Guide to PydanticAI + MCP
 
 ### A hands-on workshop (cloud-agnosticy, no vendor lock-in)
@@ -7,6 +5,7 @@
 This is the workshop handout. Each section includes a short goal, commands, and **copy-pasteable code** with file paths. If someone falls behind, you can checkpoint the repo by committing at the end of each section.
 
 ---
+
 ## Repo layout & branches you’ll create
 
 ```
@@ -44,6 +43,7 @@ This is the workshop handout. Each section includes a short goal, commands, and 
 ### Step 2: Set Environment Variable
 
 **Create a .env file with content:**
+
 ```bash
 GEMINI_API_KEY=YOUR_API_KEY_HERE
 ```
@@ -51,7 +51,7 @@ GEMINI_API_KEY=YOUR_API_KEY_HERE
 ### Security Best Practices
 
 - **Never commit API keys** to Git repositories
-- **Use server-side calls** for production applications  
+- **Use server-side calls** for production applications
 - **Consider API key restrictions** in Google Cloud Console to limit usage
 - **Rotate keys periodically** if they might be compromised
 
@@ -59,30 +59,29 @@ For more details, see the [official Gemini API documentation](https://ai.google.
 
 ---
 
-
-
 # Starting the Workshop
 
-Clone the repo.
+1. Clone the repository
 
-Then rebuild and reopen in container:
-
-Do:
-```text
-ctrl + shift + p
+```bash
+    git clone https://github.com/seangaaab/Multi-Agentic-AI-Workshop.git
 ```
+
+2. After cloning the repository, open repository in VSCode
+
+3. Open the command palette via keyboard shortcut `Ctrl + Shift + P` or `Command + Shift + P` and type in or select `Rebuild and Reopen in Container` to setup your local environment
+
 <img src="images/devcontainer.png" alt="devcontainer" width="800"/>
 
 </br>
 
-Then see the finished container:
+The VSCode window will be restarted. After restarting, you should be able to see "[Dev Container]" at the searchbar at the top inside of VSCode after selecting
 
 <img src="images/devconfinished.png" alt="devcontainer finished" width="800"/>
 
-
 <br>
 
-After the container is built, open bash in VS Code and run:
+After the container is built, open a bash terminal in VSCode and run:
 
 ```bash
 git checkout 00-boot
@@ -92,7 +91,7 @@ This will be the starting point of our workshop.
 
 ---
 
-# 00-boot — Project scaffolding & smoke test 
+# 00-boot — Project scaffolding & smoke test
 
 **Goal:** Create a clean Python 3.12 project, install PydanticAI (with MCP), and run a minimal agent.
 
@@ -275,7 +274,7 @@ agent = Agent[None, Typed](
 def main() -> None:
     result1 = agent.run_sync("What is the capital of France?").output
     print(result1.model_dump_json(indent=2))
-    
+
     result2 = agent.run_sync("Gibberish 123??").output
     print(result2.model_dump_json(indent=2))
 
@@ -360,6 +359,7 @@ Expected output:
 The current time is 2025-09-15T17:42:02.187346+00:00. (Note: timestamp will vary)
 echo=hi (message_count=2)
 ```
+
 ---
 
 # 04-mcp-stdio — Use a local MCP server as a toolset (subprocess)
@@ -389,7 +389,7 @@ def add(a: int, b: int) -> int:
 
 @mcp.tool()
 def multiply(a: int, b: int) -> int:
-    """Multiply two numbers.""" 
+    """Multiply two numbers."""
     return a * b
 
 @mcp.tool()
@@ -426,7 +426,7 @@ async def main() -> None:
     async with agent:
         res = await agent.run("How many days between 2000-01-01 and 2025-03-18?")
         print(res.output)
-        
+
         res2 = await agent.run("What is 17 times 23?")
         print(res2.output)
 
@@ -469,7 +469,7 @@ def add(a: int, b: int) -> int:
 
 @mcp.tool()
 def multiply(a: int, b: int) -> int:
-    """Multiply two numbers.""" 
+    """Multiply two numbers."""
     return a * b
 
 @mcp.tool()
@@ -512,7 +512,7 @@ async def main() -> None:
     async with agent:
         res = await agent.run("What is 7 plus 5? Use the tool.")
         print(res.output)
-        
+
         res2 = await agent.run("Calculate the factorial of 6.")
         print(res2.output)
 
@@ -528,7 +528,6 @@ uv run src/servers/calc_http_server.py
 # terminal 2
 uv run src/mcp_http_client.py
 ```
-
 
 ---
 
@@ -574,7 +573,6 @@ Run:
 ```bash
 uv run src/limits_retries.py
 ```
-
 
 ---
 
@@ -634,7 +632,6 @@ Run:
 ```bash
 uv run src/pattern_router.py
 ```
-
 
 ---
 
@@ -774,7 +771,6 @@ Run:
 uv run src/pattern_critic_editor.py
 ```
 
-
 ---
 
 # 10-tests-and-evals — Fast, no-network CI
@@ -829,16 +825,15 @@ Run:
 uv run -m pytest -q
 ```
 
-
 ---
 
 ## Troubleshooting & tips
 
-* **Model strings:** Replace `"gemini-2.5-flash"` with your provider/model (e.g., `"openai:gpt-4o-mini"`, `"anthropic:claude-3-5-sonnet-latest"`) and set the correct API key environment variable.
-* **Streaming:** `run_stream` yields final text chunks. If you need full event-by-event control, use the async `.run()` API and inspect messages/events.
-* **Unions:** When using unions or output functions, parameterize `Agent[DepsT, OutputT]` and use `# type: ignore[valid-type]` if your type checker complains on `output_type=`.
-* **MCP:** FastMCP provides pure-Python MCP servers. Use stdio for local subprocess servers; use Streamable HTTP for network servers. Add `tool_prefix` if multiple MCP servers expose identically named tools.
-* **Guardrails:** `UsageLimits` prevents runaway loops and caps tokens/tool calls. For resiliency, add Tenacity retries to your own tools or HTTP calls.
-* **Repro:** Commit your `uv.lock` to pin dependency versions for the workshop.
+- **Model strings:** Replace `"gemini-2.5-flash"` with your provider/model (e.g., `"openai:gpt-4o-mini"`, `"anthropic:claude-3-5-sonnet-latest"`) and set the correct API key environment variable.
+- **Streaming:** `run_stream` yields final text chunks. If you need full event-by-event control, use the async `.run()` API and inspect messages/events.
+- **Unions:** When using unions or output functions, parameterize `Agent[DepsT, OutputT]` and use `# type: ignore[valid-type]` if your type checker complains on `output_type=`.
+- **MCP:** FastMCP provides pure-Python MCP servers. Use stdio for local subprocess servers; use Streamable HTTP for network servers. Add `tool_prefix` if multiple MCP servers expose identically named tools.
+- **Guardrails:** `UsageLimits` prevents runaway loops and caps tokens/tool calls. For resiliency, add Tenacity retries to your own tools or HTTP calls.
+- **Repro:** Commit your `uv.lock` to pin dependency versions for the workshop.
 
 You now have a compact, production-shaped toolkit: typed agents, practical MCP integrations, and three multi-agent patterns (Router, Pipeline, Critic–Editor) that scale from MVP to real-world workloads—without rewriting your stack.
