@@ -1,6 +1,6 @@
 # The Startup’s Guide to PydanticAI + MCP
 
-### A hands-on workshop (cloud-agnosticy, no vendor lock-in)
+### A hands-on workshop (cloud-agnostic, no vendor lock-in)
 
 This is the workshop handout. Each section includes a short goal, commands, and **copy-pasteable code** with file paths. If someone falls behind, you can checkpoint the repo by committing at the end of each section.
 
