@@ -1,6 +1,6 @@
 # The Startup’s Guide to PydanticAI + MCP
 
-### A hands-on workshop (cloud-agnostic, no vendor lock-in)
+### A hands-on workshop (cloud-agnosticy, no vendor lock-in)
 
 This is the workshop handout. Each section includes a short goal, commands, and **copy-pasteable code** with file paths. If someone falls behind, you can checkpoint the repo by committing at the end of each section.
 
@@ -83,6 +83,38 @@ For more details, see the [official Gemini API documentation](https://ai.google.
 
 ---
 
+# Starting the Workshop
+
+1. Clone the repository
+
+```bash
+    git clone https://github.com/seangaaab/Multi-Agentic-AI-Workshop.git
+```
+
+2. After cloning the repository, open repository in VSCode
+
+3. Open the command palette via keyboard shortcut `Ctrl + Shift + P` or `Command + Shift + P` and type in or select `Rebuild and Reopen in Container` to setup your local environment
+
+<img src="images/devcontainer.png" alt="devcontainer" width="800"/>
+
+</br>
+
+The VSCode window will be restarted. After restarting, you should be able to see "[Dev Container]" at the searchbar at the top inside of VSCode after selecting
+
+<img src="images/devconfinished.png" alt="devcontainer finished" width="800"/>
+
+<br>
+
+After the container is built, open a bash terminal in VSCode and run:
+
+```bash
+git checkout 00-boot
+```
+
+This will be the starting point of our workshop.
+
+---
+
 # 00-boot — Project scaffolding & smoke test
 
 (If you feel lost go to the finished section of this at `git checkout 00-boot` and run `uv sync --all-groups --all-extras`)
@@ -132,6 +164,12 @@ if __name__ == "__main__":
 
 ```bash
 uv run src/boot_smoke.py
+```
+
+### Expected output
+
+```text
+hello workshop
 ```
 
 ---
