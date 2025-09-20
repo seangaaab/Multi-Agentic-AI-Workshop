@@ -519,6 +519,17 @@ uv run src/servers/calc_http_server.py
 uv run src/mcp_http_client.py
 ```
 
+Expected output should look like this:
+
+For calc_http_server.py:
+![Screenshot](images/05-mcp-http-terminal1.png)
+
+For mcp_http_client.py:
+```
+7 plus 5 is 12.
+The factorial of 6 is 720.
+```
+
 ---
 
 # 06-usage-limits-retries — Guardrails and resilient calls
@@ -564,6 +575,11 @@ Run:
 
 ```bash
 uv run src/limits_retries.py
+```
+
+Expected output should look like this:
+```
+The `flaky_fetch` call for 'hello' returned "data-for:hello".
 ```
 
 ---
@@ -626,6 +642,28 @@ Run:
 
 ```bash
 uv run src/pattern_router.py
+```
+
+Expected output should look like this:
+```
+Using math agent
+MATH: To calculate 17 * 23, we can use multiplication:
+
+1.  Multiply 17 by the units digit of 23 (which is 3):
+    17 * 3 = 51
+
+2.  Multiply 17 by the tens digit of 23 (which is 2, representing 20):
+    17 * 20 = 340
+
+3.  Add the results from step 1 and step 2:
+    51 + 340 = 391
+
+Therefore, 17 * 23 = 391.
+
+391
+Using qa agent
+QA: J.R.R. Tolkien
+FALLBACK: explanation="As an AI, I don't have personal experiences, thoughts, or knowledge that are unique to me in the way a human does. Therefore, I don't have something 'only I know.' I process and generate information based on the data I've been trained on."
 ```
 
 ---
@@ -702,6 +740,27 @@ Run:
 uv run src/pattern_pipeline.py
 ```
 
+Expected output should look like this:
+```
+### Understanding Zero-Copy Networking: The Core Concept
+Zero-copy networking is a method for transferring data between kernel and user space without involving the CPU in redundant data copies. It eliminates intermediate buffer copies, allowing data to move directly from one memory area (e.g., disk buffer) to another (e.g., network socket buffer) or the network interface card (NIC) using Direct Memory Access (DMA).
+
+### Why Backend Engineers Should Care: Performance at Scale
+For backend engineers building high-throughput, low-latency systems, zero-copy is crucial. It drastically reduces CPU utilization and memory bandwidth consumption during data transfers. This translates to higher server efficiency, improved request processing rates, and greater scalability for applications serving large volumes of data or requests.
+
+### Deep Dive: How Zero-Copy Eliminates Data Duplication
+Traditionally, data transfer involves multiple copies: user buffer to kernel buffer, then kernel buffer to socket buffer, and finally to the NIC. Zero-copy techniques bypass the user-space copy, enabling the kernel to directly send data from its read buffer (e.g., from a file) to the network socket buffer, leveraging the NIC's DMA capabilities for the final transfer.
+
+### Implementing Zero-Copy: Techniques and System Calls
+Linux provides several system calls for zero-copy operations. Key examples include `sendfile()`, which directly transfers data between file descriptors (e.g., file to socket), and `splice()`/`vmsplice()`, which move data between arbitrary file descriptors or user memory and pipes without copies. Memory-mapped files (`mmap`) can also facilitate direct kernel access.
+
+### Real-World Impact: Use Cases in High-Throughput Systems
+Zero-copy is vital in systems handling massive data streams. Common use cases include high-performance web servers (like Nginx serving static files), content delivery networks (CDNs), message queues, database systems, and streaming media services where minimizing copy overhead directly impacts performance and cost efficiency.
+
+### Beyond the Hype: Challenges and Considerations
+While powerful, zero-copy isn't a silver bullet. Its implementation can be more complex, often requiring platform-specific system calls and careful buffer management. Debugging can be harder, and its benefits are most pronounced in I/O-bound applications. Not all workloads equally benefit, and the overhead might not always justify the added complexity.
+```
+
 ---
 
 # 09-pattern-critic-editor — Two-role refinement loop
@@ -766,6 +825,13 @@ Run:
 uv run src/pattern_critic_editor.py
 ```
 
+Expected output should look like this:
+```
+Introducing **[App Name]**, the privacy-first notes app. Your thoughts deserve unwavering protection. We ensure every note remains exclusively yours through robust, end-to-end encryption. We collect zero user data, implement no tracking, and prioritize your digital autonomy.
+
+Effortlessly capture ideas, organize projects, and secure sensitive information with an intuitive interface. From personal reflections to critical insights, your data stays protected from prying eyes. Reclaim control over your digital notes. Experience true data ownership where privacy isn't an afterthought—it's the absolute foundation. Download **[App Name]** today.
+```
+
 ---
 
 # 10-tests-and-evals — Fast, no-network CI
@@ -818,6 +884,27 @@ Run:
 
 ```bash
 uv run -m pytest -q
+```
+
+Expected output should look like this:
+```
+..                                                                        [100%]
+=============================== warnings summary ================================
+.venv/lib/python3.12/site-packages/pydantic_ai/models/__init__.py:707
+.venv/lib/python3.12/site-packages/pydantic_ai/models/__init__.py:707
+.venv/lib/python3.12/site-packages/pydantic_ai/models/__init__.py:707
+.venv/lib/python3.12/site-packages/pydantic_ai/models/__init__.py:707
+.venv/lib/python3.12/site-packages/pydantic_ai/models/__init__.py:707
+.venv/lib/python3.12/site-packages/pydantic_ai/models/__init__.py:707
+  /workspaces/Multi-Agentic-AI-Workshop/.venv/lib/python3.12/site-packages/pydantic_ai/models/__init__.py:707: DeprecationWarning: Specifying a model name without a provider prefix is deprecated. Instead of 'gemini-2.5-flash', use 'google-gla:gemini-2.5-flash'.
+    warnings.warn(
+
+tests/test_pipeline.py::test_pipeline_without_network
+  /workspaces/Multi-Agentic-AI-Workshop/.venv/lib/python3.12/site-packages/pydantic_graph/_utils.py:54: DeprecationWarning: There is no current event loop
+    event_loop = asyncio.get_event_loop()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+2 passed, 7 warnings in 16.75s
 ```
 
 ---
